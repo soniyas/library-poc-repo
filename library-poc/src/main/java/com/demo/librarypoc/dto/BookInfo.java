@@ -14,14 +14,14 @@ import java.util.List;
 public class BookInfo implements Serializable {
 
     @NotNull(message = "ISBN cannot be null")
-    String isbn;
+    private String isbn;
 
     @NotNull(message = "author cannot be null")
-    String author;
+    private String author;
 
     @NotNull(message = "title cannot be null")
-    String title;
+    private String title;
 
-    List<String> tags;
+    private List<String> tags;
 
 }

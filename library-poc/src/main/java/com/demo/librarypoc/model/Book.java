@@ -32,7 +32,7 @@ public class Book {
     @Column(name="TITLE")
     private String title;
 
-    @OneToMany( cascade = CascadeType.ALL , orphanRemoval = true)
+    @OneToMany( cascade = CascadeType.ALL)
     @JoinColumn(name="BOOK_ID", referencedColumnName = "BOOK_ID")
     private List<Tag> tags;
 
