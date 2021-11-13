@@ -24,6 +24,7 @@ public class LibraryControllerAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleInvalidRequestException(MethodArgumentNotValidException ex,
                                                                        WebRequest request) {
+
         String message = ex.getBindingResult().getAllErrors().stream()
                 .map(objectError -> objectError.getDefaultMessage())
                 .collect(Collectors.joining(", "));
@@ -36,6 +37,7 @@ public class LibraryControllerAdvice {
     @ExceptionHandler(BookNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(BookNotFoundException ex,
                                                                  WebRequest request) {
+
         return new ResponseEntity<>(ErrorResponse.builder().message(ex.getErrorMessage())
                 .code(ex.getErrorCode())
                 .status(ex.getHttpStatus())

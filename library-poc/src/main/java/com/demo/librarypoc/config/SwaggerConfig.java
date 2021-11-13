@@ -17,7 +17,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2).select()
-                .apis(RequestHandlerSelectors.basePackage("com.demo.curator.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.demo.librarypoc.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }

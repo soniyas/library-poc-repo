@@ -10,9 +10,9 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public class ErrorResponse {
 
-    public String message;
+    private String message;
 
-    public String code;
+    private String code;
 
-    public HttpStatus status;
+    private HttpStatus status;
 }

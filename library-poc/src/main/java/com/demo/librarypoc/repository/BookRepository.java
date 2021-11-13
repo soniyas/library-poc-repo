@@ -13,15 +13,11 @@ import java.util.UUID;
 @Repository
 public interface BookRepository extends JpaRepository<Book, UUID> {
 
-    List<Book> findAllByTitle(String title);
-
-    List<Book> findAllByIsbn(String isbn);
-
-    Optional<Book> findByIsbn(String isbn);
+    Optional<List<Book>> findAllByIsbn(String isbn);
 
     void deleteAllByIsbn(String isbn);
 
-    @Query("SELECT book,tag FROM Book book JOIN Tag tag ON book.bookId = tag.book" +
+    @Query("SELECT book,tag FROM Book book LEFT JOIN Tag tag ON book.bookId = tag.book" +
             " WHERE (book.isbn = :isbn OR :isbn IS NULL)" +
             " OR (book.title = :title OR :title IS NULL) " +
             " OR (book.author = :author OR :author is NULL)" +

@@ -6,9 +6,9 @@ import com.demo.librarypoc.exception.BookNotFoundException;
 import com.demo.librarypoc.model.Book;
 import com.demo.librarypoc.model.Tag;
 import com.demo.librarypoc.repository.BookRepository;
-import com.demo.librarypoc.repository.TagRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -26,11 +26,9 @@ public class LibraryService {
 
     private final BookRepository bookRepository;
 
-    private final TagRepository tagRepository;
-
-    public LibraryService(BookRepository bookRepository, TagRepository tagRepository) {
+    @Autowired
+    public LibraryService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
-        this.tagRepository = tagRepository;
     }
 
     /**
@@ -40,15 +38,11 @@ public class LibraryService {
      * @return Book Information
      */
     public BookInfo enrollBook(BookInfo bookInfo) {
-        List<Tag> tags = getTags(bookInfo);
-        Book book = Book.builder().isbn(bookInfo.getIsbn())
-                .title(bookInfo.getTitle())
-                .author(bookInfo.getAuthor())
-                .tags(tags)
-                .build();
+
+        Book book = Book.builder().isbn(bookInfo.getIsbn()).title(bookInfo.getTitle())
+                .author(bookInfo.getAuthor()).tags(getTags(bookInfo)).build();
         bookRepository.save(book);
         return mapToBookInfo(book);
-
     }
 
     /**
@@ -56,6 +50,7 @@ public class LibraryService {
      * @return Books Information
      */
     public List<BookInfo> importBooks(List<BookInfo> bookInfos) {
+
         LOGGER.info("Importing books");
         return bookInfos.stream().map(bookInfo -> enrollBook(bookInfo)).collect(Collectors.toList());
     }
@@ -66,12 +61,14 @@ public class LibraryService {
      * @throws BookNotFoundException
      */
     public List<BookInfo> retrieveBook(String isbn) throws BookNotFoundException {
+
         LOGGER.info("Retrieving book by ISBN: {}", isbn);
-        List<Book> books = bookRepository.findAllByIsbn(isbn);
-        if (books.size() == 0) {
+        Optional<List<Book>> books = bookRepository.findAllByIsbn(isbn);
+
+        if (!books.isPresent()) {
             throw new BookNotFoundException("No book found with the given isbn", "5002", HttpStatus.NOT_FOUND);
         }
-        return books.stream().map(book -> mapToBookInfo(book)).collect(Collectors.toList());
+        return books.get().stream().map(book -> mapToBookInfo(book)).collect(Collectors.toList());
     }
 
     /**
@@ -79,50 +76,56 @@ public class LibraryService {
      */
     @Transactional
     public void deleteBook(String isbn) {
+
         bookRepository.deleteAllByIsbn(isbn);
     }
 
     /**
-     * @param bookInfo Updates book by isbn
-     * @return
+     * Updates book by isbn
+     * @param bookInfo
+     * @return updated Count
      */
     public int updateBook(BookInfo bookInfo) {
+
         LOGGER.info("Updating book by ISBN: {}", bookInfo.getIsbn());
-        List<Book> books = bookRepository.findAllByIsbn(bookInfo.getIsbn());
         AtomicInteger count = new AtomicInteger();
-        books.stream().map(book -> {
+        Optional<List<Book>> books = bookRepository.findAllByIsbn(bookInfo.getIsbn());
+
+        books.get().stream().forEach(book -> {
             count.incrementAndGet();
             book.setAuthor(bookInfo.getAuthor());
             book.setTitle(bookInfo.getTitle());
             book.setTags(getTags(bookInfo));
             bookRepository.save(book);
-            return count;
         });
         return count.get();
     }
 
+    /**
+     * Search books
+     * @param bookInfo
+     * @return Books Information
+     */
     public List<BookInfo> listBooks(BookInfo bookInfo) {
+
         Optional<List<Book>> books = bookRepository.findbyBookInfo(bookInfo.getIsbn(),
                 bookInfo.getTitle(), bookInfo.getAuthor(), bookInfo.getTags());
         return books.get().stream().map(book -> mapToBookInfo(book)).collect(Collectors.toList());
     }
 
     private List<Tag> getTags(BookInfo bookInfo) {
+
         List<Tag> tags = new ArrayList<>();
-        bookInfo.getTags().forEach(tag -> {
-            tags.add(Tag.builder().name(tag).build());
-        });
+        bookInfo.getTags().forEach(tag -> tags.add(Tag.builder().name(tag).build()));
         return tags;
     }
 
     private BookInfo mapToBookInfo(Book book) {
+
         List<String> tags = book.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList());
         return BookInfo.builder()
-                .isbn(book.getIsbn())
-                .author(book.getAuthor())
-                .title(book.getTitle())
-                .tags(tags)
-                .build();
+                .isbn(book.getIsbn()).author(book.getAuthor())
+                .title(book.getTitle()).tags(tags).build();
     }
 
 }
